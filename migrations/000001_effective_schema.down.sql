@@ -1,7 +1,7 @@
 DROP INDEX IF EXISTS idx_user_id;
-DROP INDEX IF EXISTS idx_task_id;
+
 DROP INDEX IF EXISTS idx_progress_id;
 
-DROP TABLE IF EXISTS users;
-DROP TABLE IF EXISTS tasks;
 DROP TABLE IF EXISTS task_progress;
+
+DROP TABLE IF EXISTS users;

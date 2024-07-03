@@ -5,4 +5,5 @@ import "fmt"
 var (
 	ErrCreatingUser = fmt.Errorf("user already exists")
 	ErrNoUser       = fmt.Errorf("user not found")
+	ErrNoTask       = fmt.Errorf("task not found")
 )

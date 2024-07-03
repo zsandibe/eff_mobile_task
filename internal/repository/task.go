@@ -2,7 +2,7 @@ package repository
 
 import (
 	"context"
-	"fmt"
+	"database/sql"
 	"strconv"
 	"time"
 
@@ -54,41 +54,77 @@ func (r *repositoryPostgres) StopTask(ctx context.Context, taskId int, id string
 		return err
 	}
 
-	// Получаем время начала задачи
-	var startedAt time.Time
-	err = r.db.QueryRowContext(ctx, "SELECT started_at FROM task_progress WHERE id = $1 AND user_id = $2", taskId, userId).Scan(&startedAt)
-	if err != nil {
-		logger.Errorf("error fetching start time: %v", err)
-		return err
-	}
-
-	if startedAt.IsZero() {
-		logger.Errorf("start time is zero for task %d and user %d", taskId, userId)
-		return fmt.Errorf("start time is not set for task %d and user %d", taskId, userId)
-	}
-
-	// Вычисляем разницу времени
 	finishedAt := time.Now()
-	duration := finishedAt.Sub(startedAt)
-	fmt.Println(duration)
-	if duration < 0 {
-		logger.Errorf("negative duration calculated for task %d and user %d", taskId, userId)
-		return fmt.Errorf("negative duration for task %d and user %d", taskId, userId)
-	}
 
 	// Обновляем запись с новым временем завершения и разницей времени
 	query := `
         UPDATE task_progress
         SET finished_at = $1, 
-            time_difference = $2
-        WHERE id = $3 AND 
-              user_id = $4
+            time_difference = $1 - started_at
+        WHERE id = $2 AND 
+              user_id = $3
+			  AND finished_at IS NULL
     `
-	_, err = r.db.ExecContext(ctx, query, finishedAt, duration, taskId, userId)
+	_, err = r.db.ExecContext(ctx, query, finishedAt, taskId, userId)
 	if err != nil {
 		logger.Errorf("error in stopping task: %v", err)
 		return err
 	}
 
 	return nil
+}
+
+func (r *repositoryPostgres) GetTaskProgressByUserId(ctx context.Context, userId int) ([]entity.Task, error) {
+
+	query := `
+	SELECT t.id,t.user_id,
+	t.name,t.description,
+	t.started_at,t.finished_at,
+	t.time_difference
+	FROM task_progress t
+	WHERE t.user_id = $1
+	ORDER BY t.time_difference DESC
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, userId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, domain.ErrNoTask
+		}
+		logger.Errorf("error querying with context: %v", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var tasks []entity.Task
+	for rows.Next() {
+		var task entity.Task
+
+		if err := rows.Scan(
+			&task.Id,
+			&task.UserId,
+			&task.Name,
+			&task.Description,
+			&task.StartedAt,
+			&task.FinishedAt,
+			&task.TimeDifference,
+		); err != nil {
+			logger.Errorf("problems with scanning rows: %v", err)
+			return tasks, err
+		}
+
+		tasks = append(tasks, task)
+	}
+
+	if err := rows.Close(); err != nil {
+		logger.Error(err)
+		return tasks, err
+	}
+
+	if err := rows.Err(); err != nil {
+		logger.Error(err)
+		return tasks, err
+	}
+
+	return tasks, nil
 }

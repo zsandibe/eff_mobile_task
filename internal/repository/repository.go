@@ -15,6 +15,8 @@ type Repository interface {
 	DeleteUserById(ctx context.Context, userId int) error
 	StartTask(ctx context.Context, inp domain.CreateTaskRequest) (entity.Task, error)
 	StopTask(ctx context.Context, taskId int, id string) error
+	GetTaskProgressByUserId(ctx context.Context, userId int) ([]entity.Task, error)
+	GetUsersList(ctx context.Context, params domain.UsersListParams) ([]entity.User, error)
 }
 
 type repositoryPostgres struct {

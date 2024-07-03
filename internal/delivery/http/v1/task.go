@@ -48,3 +48,28 @@ func (h *Handler) StopTask(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Successfully stopped"})
 }
+
+func (h *Handler) GetTaskProgressByUserId(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		errorResponse(c, http.StatusBadRequest, fmt.Errorf("invalid request id: %v", err))
+		return
+	}
+
+	tasks, err := h.service.GetTaskProgressByUserId(c, id)
+	if err != nil {
+		if err == domain.ErrNoTask {
+			errorResponse(c, http.StatusBadRequest, err)
+			return
+		}
+		errorResponse(c, http.StatusInternalServerError, err)
+		return
+	}
+
+	if len(tasks) == 0 {
+		errorResponse(c, http.StatusNotFound, fmt.Errorf("no tasks found for user ID %d", id))
+		return
+	}
+
+	c.JSON(http.StatusOK, tasks)
+}

@@ -14,3 +14,7 @@ func (s *service) StartTask(ctx context.Context, inp domain.CreateTaskRequest) (
 func (s *service) StopTask(ctx context.Context, taskId int, id string) error {
 	return s.repo.StopTask(ctx, taskId, id)
 }
+
+func (s *service) GetTaskProgressByUserId(ctx context.Context, userId int) ([]entity.Task, error) {
+	return s.repo.GetTaskProgressByUserId(ctx, userId)
+}

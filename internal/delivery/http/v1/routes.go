@@ -9,6 +9,7 @@ func (h *Handler) Routes() *gin.Engine {
 	{
 		users := api.Group("/users")
 		{
+			users.GET("/", h.GetUsersList)
 			users.POST("/", h.AddUser)
 			users.GET("/:id", h.GetUserById)
 			users.PUT("/:id", h.UpdateUserData)
@@ -20,7 +21,7 @@ func (h *Handler) Routes() *gin.Engine {
 			tasks.POST("/", h.CreateTask)
 			tasks.PUT("/:id", h.StopTask)
 			tasks.DELETE("/:id")
-			tasks.GET("/user/:id")
+			tasks.GET("/user/:id", h.GetTaskProgressByUserId)
 		}
 	}
 	return router

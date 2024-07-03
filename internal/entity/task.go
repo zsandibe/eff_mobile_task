@@ -9,5 +9,5 @@ type Task struct {
 	Description    string    `json:"description,omitempty" db:"description"`
 	StartedAt      time.Time `json:"started_at,omitempty" db:"started_at"`
 	FinishedAt     time.Time `json:"finished_at,omitempty" db:"finished_at"`
-	TimeDifference int       `json:"time_difference,omitempty" db:"time_difference"`
+	TimeDifference string    `json:"time_difference,omitempty" db:"time_difference"`
 }

@@ -10,6 +10,23 @@ import (
 	"github.com/zsandibe/eff_mobile_task/pkg"
 )
 
+func (h *Handler) GetUsersList(c *gin.Context) {
+	var inp domain.UsersListParams
+
+	if err := c.ShouldBindJSON(&inp); err != nil {
+		errorResponse(c, http.StatusBadRequest, fmt.Errorf("invalid request body: %v", err))
+		return
+	}
+
+	users, err := h.service.GetUsersList(c, inp)
+	if err != nil {
+		errorResponse(c, http.StatusInternalServerError, fmt.Errorf("error in getting users list: %v", err))
+		return
+	}
+
+	c.JSON(http.StatusOK, users)
+}
+
 func (h *Handler) AddUser(c *gin.Context) {
 	var inp domain.GetUserRequest
 

@@ -28,3 +28,7 @@ func (s *service) UpdateUserData(ctx context.Context, userId int, params domain.
 func (s *service) DeleteUserById(ctx context.Context, userId int) error {
 	return s.repo.DeleteUserById(ctx, userId)
 }
+
+func (s *service) GetUsersList(ctx context.Context, params domain.UsersListParams) ([]entity.User, error) {
+	return s.repo.GetUsersList(ctx, params)
+}

@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 	"strconv"
 	"time"
 
@@ -33,7 +32,7 @@ func (r *repositoryPostgres) StartTask(ctx context.Context, inp domain.CreateTas
 		startTime).Scan(&id)
 	if err != nil {
 		logger.Errorf("Error in inserting user: %v", err)
-		return entity.Task{}, domain.ErrCreatingUser
+		return entity.Task{}, err
 	}
 
 	task = entity.Task{
@@ -56,7 +55,6 @@ func (r *repositoryPostgres) StopTask(ctx context.Context, taskId int, id string
 
 	finishedAt := time.Now()
 
-	// Обновляем запись с новым временем завершения и разницей времени
 	query := `
         UPDATE task_progress
         SET finished_at = $1, 
@@ -88,9 +86,6 @@ func (r *repositoryPostgres) GetTaskProgressByUserId(ctx context.Context, userId
 
 	rows, err := r.db.QueryContext(ctx, query, userId)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, domain.ErrNoTask
-		}
 		logger.Errorf("error querying with context: %v", err)
 		return nil, err
 	}
@@ -127,4 +122,24 @@ func (r *repositoryPostgres) GetTaskProgressByUserId(ctx context.Context, userId
 	}
 
 	return tasks, nil
+}
+
+func (r *repositoryPostgres) IsTaskExists(ctx context.Context, taskId int) (bool, error) {
+	var exists bool
+
+	query := `
+    SELECT EXISTS (
+        SELECT 1
+        FROM task_progress
+        WHERE id = $1
+    )
+    `
+
+	err := r.db.QueryRowContext(ctx, query, taskId).Scan(&exists)
+	if err != nil {
+		logger.Errorf("error checking if task exists: %v", err)
+		return false, err
+	}
+
+	return exists, nil
 }

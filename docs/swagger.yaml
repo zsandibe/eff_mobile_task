@@ -1,0 +1,358 @@
+basePath: /api/v1
+definitions:
+  domain.CreateTaskRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      user_id:
+        type: string
+    type: object
+  domain.GetUserRequest:
+    properties:
+      passport_number:
+        type: string
+      passport_serie:
+        type: string
+    type: object
+  domain.UserDataUpdatingRequest:
+    properties:
+      address:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      passport_number:
+        type: string
+      passport_serie:
+        type: string
+      patronymic:
+        type: string
+      surname:
+        type: string
+    type: object
+  entity.Task:
+    properties:
+      description:
+        type: string
+      finished_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      started_at:
+        type: string
+      time_difference:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  entity.User:
+    properties:
+      address:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      passport_number:
+        type: string
+      passport_serie:
+        type: string
+      patronymic:
+        type: string
+      surname:
+        type: string
+    type: object
+  v1.Response:
+    properties:
+      message:
+        type: string
+    type: object
+host: localhost:8888
+info:
+  contact: {}
+  description: This is basic server for a user searching service
+  title: Effective mobile API
+  version: "1.0"
+paths:
+  /tasks:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new task by taking a name and description
+      parameters:
+      - description: Task Creation Data
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.Task'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Create a new task
+      tags:
+      - task
+  /tasks/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Stopping task progress by task id
+      parameters:
+      - description: Task id
+        in: path
+        name: id
+        type: string
+      - description: User id
+        in: body
+        name: user_id
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully stopped
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Stop task
+      tags:
+      - task
+  /tasks/user/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Getting task progress info by user id
+      parameters:
+      - description: User  id
+        in: path
+        name: user_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entity.Task'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Get user`s` task progress by user id
+      tags:
+      - task
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: Getting users info by filter
+      parameters:
+      - description: Passport serie
+        in: query
+        name: passport_serie
+        type: string
+      - description: Passport number
+        in: query
+        name: passport_number
+        type: string
+      - description: Users` name
+        in: query
+        name: name
+        type: string
+      - description: User`s surname
+        in: query
+        name: surname
+        type: string
+      - description: User`s patronymic
+        in: query
+        name: patronymic
+        type: string
+      - description: User`s address
+        in: query
+        name: address
+        type: string
+      - description: User`s limit
+        in: query
+        name: limit
+        type: integer
+      - description: User`s offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entity.User'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Get users list by filter
+      tags:
+      - user
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user by taking a passportSerie and passportNumber
+      parameters:
+      - description: User Creation Data
+        in: body
+        name: input
+        schema:
+          $ref: '#/definitions/domain.GetUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Create a new user
+      tags:
+      - user
+  /users/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a user by Id
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully deleted
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Delete a user
+      tags:
+      - user
+    get:
+      description: Getting user info by   id
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.User'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Get user by id
+      tags:
+      - user
+    put:
+      consumes:
+      - application/json
+      description: Updating user info by ID
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update User Request
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UserDataUpdatingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Succesfully updated
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.Response'
+      summary: Update user information
+      tags:
+      - user
+swagger: "2.0"

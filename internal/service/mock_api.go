@@ -9,14 +9,14 @@ import (
 func getInfoByPassport(passportSerie, passportNumber string) (domain.GetUserResponse, error) {
 	fmt.Println(passportSerie, passportNumber)
 	mockResponse := domain.GetUserResponse{
-		PassportCredentials: domain.GetUserRequest{
-			PassportSerie:  passportSerie,
-			PassportNumber: passportNumber,
+		PassportSerie:  passportSerie,
+		PassportNumber: passportNumber,
+		People: domain.People{
+			Name:       "Тест",
+			Surname:    "Тестов",
+			Patronymic: "Тестович",
+			Address:    "Тестовенко 14",
 		},
-		Name:       "DAUN",
-		Surname:    "Малов",
-		Patronymic: "GANDON",
-		Address:    "Атаманонова 14",
 	}
 	return mockResponse, nil
 }

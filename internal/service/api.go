@@ -1,20 +1,31 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 
 	"github.com/zsandibe/eff_mobile_task/config"
+	"github.com/zsandibe/eff_mobile_task/internal/domain"
 )
 
-func getInfoFromApi(regNum string, cfg config.Config) error {
+func getInfoFromApi(passportSerie, passportNumber string, cfg config.Config) (domain.People, error) {
+	body, err := getResponseBody(cfg.Api.Uri, passportSerie, passportNumber)
+	if err != nil {
+		return domain.People{}, err
+	}
 
-	return nil
+	var response domain.People
+
+	if err := json.Unmarshal(body, &response); err != nil {
+		return domain.People{}, fmt.Errorf("problems with unmarshalling response: %v", err)
+	}
+	return response, nil
 }
 
-func getResponseBody(url, name string) ([]byte, error) {
-	fullUrl := fmt.Sprintf("", url, name)
+func getResponseBody(url, serie, number string) ([]byte, error) {
+	fullUrl := fmt.Sprintf("%s/info?passportSerie=%s?passportNumber=%s", url, serie, number)
 	req, err := http.NewRequest("GET", fullUrl, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error creating request: %v", err)

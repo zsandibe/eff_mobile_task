@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"strconv"
 	"strings"
@@ -15,77 +14,70 @@ import (
 func (r *repositoryPostgres) GetUsersList(ctx context.Context, params domain.UsersListParams) ([]entity.User, error) {
 	users := make([]entity.User, 0)
 	var (
-		sql     string
 		args    []interface{}
 		where   []string
 		orderBy []string
 	)
 
-	if params.PassportCredentials.PassportSerie != "" {
-		where = append(where, "passport_serie = $")
-		args = append(args, params.PassportCredentials.PassportSerie)
+	if params.PassportSerie != "" {
+		where = append(where, "passport_serie = $"+strconv.Itoa(len(args)+1))
+		args = append(args, params.PassportSerie)
 	}
-	if params.PassportCredentials.PassportNumber != "" {
-		where = append(where, "passport_number = $")
-		args = append(args, params.PassportCredentials.PassportNumber)
+	if params.PassportNumber != "" {
+		where = append(where, "passport_number = $"+strconv.Itoa(len(args)+1))
+		args = append(args, params.PassportNumber)
 	}
 	if params.Name != "" {
-		where = append(where, "name = $")
+		where = append(where, "name = $"+strconv.Itoa(len(args)+1))
 		args = append(args, params.Name)
 	}
 	if params.Surname != "" {
-		where = append(where, "surname = $")
+		where = append(where, "surname = $"+strconv.Itoa(len(args)+1))
 		args = append(args, params.Surname)
 	}
 	if params.Patronymic != "" {
-		where = append(where, "patronymic = $")
+		where = append(where, "patronymic = $"+strconv.Itoa(len(args)+1))
 		args = append(args, params.Patronymic)
 	}
 	if params.Address != "" {
-		where = append(where, "address = $")
+		where = append(where, "address = $"+strconv.Itoa(len(args)+1))
 		args = append(args, params.Address)
 	}
 
+	query := "SELECT * FROM users"
 	if len(where) > 0 {
-		sql = " WHERE " + strings.Join(where, " AND ")
-	} else {
-		sql = ""
+		query += " WHERE " + strings.Join(where, " AND ")
 	}
-
+	if len(orderBy) > 0 {
+		query += " ORDER BY " + strings.Join(orderBy, ", ")
+	}
 	if params.Limit > 0 {
-		sql += " LIMIT $" + strconv.Itoa(len(args)+1)
+		query += " LIMIT $" + strconv.Itoa(len(args)+1)
 		args = append(args, params.Limit)
 	}
 	if params.Offset > 0 {
-		sql += " OFFSET $" + strconv.Itoa(len(args)+1)
+		query += " OFFSET $" + strconv.Itoa(len(args)+1)
 		args = append(args, params.Offset)
 	}
 
-	for i := range args {
-		sql = strings.Replace(sql, "$", fmt.Sprintf("$%d", i+1), -1)
-	}
+	fmt.Println(query)
+	fmt.Println(args)
 
-	sql = "SELECT * FROM users" + sql + (strings.Join(orderBy, ", "))
-
-	rows, err := r.db.QueryContext(ctx, sql, args...)
+	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
-
+		logger.Error(err)
 		return nil, err
 	}
 	defer rows.Close()
+
 	for rows.Next() {
 		var user entity.User
-		err := rows.Scan(&user.Id, &user.PassportSerie, &user.PassportNumber, &user.Name, &user.Surname,
-			&user.Patronymic, &user.Address)
-		if err != nil {
+		if err := rows.Scan(&user.Id, &user.PassportSerie, &user.PassportNumber, &user.Name, &user.Surname,
+			&user.Patronymic, &user.Address); err != nil {
+			logger.Error(err)
 			return nil, err
 		}
 		users = append(users, user)
-	}
-
-	if err := rows.Close(); err != nil {
-		logger.Error(err)
-		return nil, err
 	}
 
 	if err := rows.Err(); err != nil {
@@ -106,12 +98,12 @@ func (r *repositoryPostgres) AddUser(ctx context.Context, inp domain.GetUserResp
 	var user entity.User
 
 	err := r.db.QueryRowContext(ctx, query,
-		inp.PassportCredentials.PassportSerie,
-		inp.PassportCredentials.PassportNumber,
-		inp.Name,
-		inp.Surname,
-		inp.Patronymic,
-		inp.Address).Scan(&id)
+		inp.PassportSerie,
+		inp.PassportNumber,
+		inp.People.Name,
+		inp.People.Surname,
+		inp.People.Patronymic,
+		inp.People.Address).Scan(&id)
 	if err != nil {
 		logger.Errorf("Error in inserting user: %v", err)
 		return entity.User{}, domain.ErrCreatingUser
@@ -119,12 +111,12 @@ func (r *repositoryPostgres) AddUser(ctx context.Context, inp domain.GetUserResp
 
 	user = entity.User{
 		Id:             id,
-		PassportSerie:  inp.PassportCredentials.PassportSerie,
-		PassportNumber: inp.PassportCredentials.PassportNumber,
-		Name:           inp.Name,
-		Surname:        inp.Surname,
-		Patronymic:     inp.Patronymic,
-		Address:        inp.Address,
+		PassportSerie:  inp.PassportSerie,
+		PassportNumber: inp.PassportNumber,
+		Name:           inp.People.Name,
+		Surname:        inp.People.Surname,
+		Patronymic:     inp.People.Patronymic,
+		Address:        inp.People.Address,
 	}
 
 	return user, nil
@@ -149,7 +141,6 @@ func (r *repositoryPostgres) GetUserById(ctx context.Context, id int) (entity.Us
 	); err != nil {
 		return user, err
 	}
-
 	return user, nil
 }
 
@@ -182,12 +173,30 @@ func (r *repositoryPostgres) DeleteUserById(ctx context.Context, userId int) err
 
 	_, err := r.db.ExecContext(ctx, query, userId)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return domain.ErrNoUser
-		}
 		logger.Error(ctx, fmt.Errorf("error with executing query: %v", err))
 		return err
 	}
 
 	return nil
+}
+
+func (r *repositoryPostgres) CheckUserByPassport(ctx context.Context, passportSerie, passportNumber string) (bool, error) {
+	var exists bool
+
+	query := `
+    SELECT EXISTS (
+        SELECT 1
+        FROM users
+        WHERE passport_serie = $1
+		AND passport_number = $2
+    )
+    `
+
+	err := r.db.QueryRowContext(ctx, query, passportSerie, passportNumber).Scan(&exists)
+	if err != nil {
+		logger.Errorf("error checking if task exists: %v", err)
+		return false, err
+	}
+
+	return exists, nil
 }

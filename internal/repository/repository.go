@@ -17,6 +17,8 @@ type Repository interface {
 	StopTask(ctx context.Context, taskId int, id string) error
 	GetTaskProgressByUserId(ctx context.Context, userId int) ([]entity.Task, error)
 	GetUsersList(ctx context.Context, params domain.UsersListParams) ([]entity.User, error)
+	IsTaskExists(ctx context.Context, taskId int) (bool, error)
+	CheckUserByPassport(ctx context.Context, passportSerie, passportNumber string) (bool, error)
 }
 
 type repositoryPostgres struct {

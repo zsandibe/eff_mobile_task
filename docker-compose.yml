@@ -1,0 +1,30 @@
+version: "3"
+
+services:
+  api-server:
+    build:
+      context: .
+    container_name: api-server
+    volumes:
+      - ./:/api-server/
+    depends_on:
+      - postgres
+    ports:
+      - "8888:8888"
+    command: >
+      bash -c 
+      "go run cmd/main.go"
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    volumes:
+      - pg_data:/var/lib/postgresql/data/
+    environment:
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=effective
+    ports:
+      - "5433:5432"
+
+volumes:
+  pg_data: {}

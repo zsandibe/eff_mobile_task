@@ -10,6 +10,7 @@ import (
 
 type Api struct {
 	Uri string `envconfig:"API_URI" required:"true"`
+	Key string `envconfig:"API_KEY" required:"true"`
 }
 
 type Server struct {

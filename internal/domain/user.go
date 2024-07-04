@@ -6,22 +6,27 @@ type GetUserRequest struct {
 }
 
 type GetUserResponse struct {
-	PassportCredentials GetUserRequest `json:"passport_credentials"`
-	Name                string         `json:"name"`
-	Surname             string         `json:"surname"`
-	Patronymic          string         `json:"patronymic,omitempty"`
-	Address             string         `json:"address"`
+	PassportSerie  string `json:"passport_credentials"`
+	PassportNumber string `json:"passport_number"`
+	People         People
+}
+
+type People struct {
+	Name       string `json:"name"`
+	Surname    string `json:"surname"`
+	Patronymic string `json:"patronymic,omitempty"`
+	Address    string `json:"address"`
 }
 
 type UsersListParams struct {
-	Id                  int            `json:"id"`
-	PassportCredentials GetUserRequest `json:"passport_credentials"`
-	Name                string         `json:"name"`
-	Surname             string         `json:"surname"`
-	Patronymic          string         `json:"patronymic"`
-	Address             string         `json:"address"`
-	Limit               int            `json:"limit"`
-	Offset              int            `json:"offset"`
+	PassportSerie  string `form:"passport_serie"`
+	PassportNumber string `form:"passport_number"`
+	Name           string `form:"name"`
+	Surname        string `form:"surname"`
+	Patronymic     string `form:"patronymic"`
+	Address        string `form:"address"`
+	Limit          int    `form:"limit"`
+	Offset         int    `form:"offset"`
 }
 
 type UserDataUpdatingRequest struct {

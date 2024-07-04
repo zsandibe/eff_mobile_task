@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS task_progress (
     started_at TIMESTAMP,
     finished_at TIMESTAMP,
     time_difference INTERVAL,
-    FOREIGN KEY (user_id) REFERENCES users (id)
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
 
@@ -28,3 +28,5 @@ CREATE TABLE IF NOT EXISTS task_progress (
 CREATE INDEX idx_user_id ON users(id);
 
 CREATE INDEX idx_progress_id ON task_progress(id);
+
+

@@ -3,6 +3,7 @@ package pkg
 import (
 	"fmt"
 	"regexp"
+	"unicode/utf8"
 )
 
 func ValidatePassport(series, number string) error {
@@ -65,4 +66,22 @@ func ValidatePersonalInfo(name, surname, patronymic, address string) error {
 	}
 
 	return nil
+}
+
+func isASCIIPrintable(s string) bool {
+	for i := 0; i < len(s); i++ {
+		if s[i] < 32 || s[i] > 126 {
+			return false
+		}
+	}
+	return true
+}
+
+func ValidateStrings(s1, s2 string) bool {
+
+	if !utf8.ValidString(s1) || !utf8.ValidString(s2) {
+		return false
+	}
+
+	return isASCIIPrintable(s1) && isASCIIPrintable(s2)
 }
